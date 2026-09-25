@@ -12,10 +12,6 @@ spring:
           predicates:
             - Path=/solicitudes/**
           filters:
-            - name: CircuitBreaker
-              args:
-                name: solicitudCircuitBreaker
-                fallbackUri: forward:/fallback/solicitudes
             - name: Retry
               args:
                 retries: 3
@@ -29,10 +25,6 @@ spring:
           predicates:
             - Path=/evaluaciones/**
           filters:
-            - name: CircuitBreaker
-              args:
-                name: evaluacionCircuitBreaker
-                fallbackUri: forward:/fallback/evaluaciones
             - name: Retry
               args:
                 retries: 3
@@ -46,10 +38,6 @@ spring:
           predicates:
             - Path=/auth/**
           filters:
-            - name: CircuitBreaker
-              args:
-                name: authCircuitBreaker
-                fallbackUri: forward:/fallback/auth
             - name: Retry
               args:
                 retries: 2
@@ -59,60 +47,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway,circuitbreaker,circuitbreakers
+        include: health,info,gateway
   endpoint:
     health:
       probes:
         enabled: true
       show-details: always
-  health:
-    circuitbreaker:
-      enabled: true
-
-resilience4j:
-  circuitbreaker:
-    instances:
-      solicitudCircuitBreaker:
-        registerHealthIndicator: true
-        ringBufferSizeInClosedState: 10
-        ringBufferSizeInHalfOpenState: 5
-        waitDurationInOpenState: 5s
-        failureRateThreshold: 50
-        slowCallRateThreshold: 50
-        slowCallDurationThreshold: 1s
-        recordExceptions:
-          - java.net.ConnectException
-          - java.io.IOException
-      evaluacionCircuitBreaker:
-        registerHealthIndicator: true
-        ringBufferSizeInClosedState: 10
-        ringBufferSizeInHalfOpenState: 5
-        waitDurationInOpenState: 5s
-        failureRateThreshold: 50
-        slowCallRateThreshold: 50
-        slowCallDurationThreshold: 1s
-        recordExceptions:
-          - java.net.ConnectException
-          - java.io.IOException
-      authCircuitBreaker:
-        registerHealthIndicator: true
-        ringBufferSizeInClosedState: 10
-        ringBufferSizeInHalfOpenState: 5
-        waitDurationInOpenState: 5s
-        failureRateThreshold: 50
-        slowCallRateThreshold: 50
-        slowCallDurationThreshold: 1s
-        recordExceptions:
-          - java.net.ConnectException
-          - java.io.IOException
-  timelimiter:
-    instances:
-      solicitudCircuitBreaker:
-        cancelledByTimeout: true
-        timeoutDuration: 3s
-      evaluacionCircuitBreaker:
-        cancelledByTimeout: true
-        timeoutDuration: 3s
-      authCircuitBreaker:
-        cancelledByTimeout: true
-        timeoutDuration: 3s
