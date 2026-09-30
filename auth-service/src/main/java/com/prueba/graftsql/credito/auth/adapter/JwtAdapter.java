@@ -11,10 +11,12 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import jakarta.annotation.PostConstruct;
 @Component
 public class JwtAdapter implements JwtPort {
 
-    @Value("${jwt.secret}")
+    @Value("${jwt.secret:}")
     private String jwtSecret;
 
     @Value("${jwt.expiration:3600000}")
@@ -22,6 +24,13 @@ public class JwtAdapter implements JwtPort {
 
     @Value("${jwt.refresh-expiration:86400000}")
     private long refreshTokenExpiration;
+
+    @PostConstruct
+    void validateSecret() {
+        if (jwtSecret == null || jwtSecret.getBytes(StandardCharsets.UTF_8).length < 64) {
+            throw new IllegalStateException("JWT_SECRET debe tener al menos 64 bytes para usar HS512");
+        }
+    }
 
     @Override
     public String generateToken(User user) {
@@ -34,7 +43,7 @@ public class JwtAdapter implements JwtPort {
                 .setSubject(user.getId())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
-                .signWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()), SignatureAlgorithm.HS512)
+                .signWith(Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS512)
                 .compact();
     }
 
@@ -44,7 +53,7 @@ public class JwtAdapter implements JwtPort {
                 .setSubject(user.getId())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
-                .signWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()), SignatureAlgorithm.HS512)
+                .signWith(Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS512)
                 .compact();
     }
 }

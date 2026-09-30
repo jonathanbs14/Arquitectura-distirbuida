@@ -3,7 +3,11 @@ package com.prueba.graftsql.credito.auth.domain;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "oauth_profiles")
+@Table(
+        name = "oauth_profiles",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_oauth_profile_provider_external_id",
+                columnNames = {"provider", "external_id"}))
 public class OAuthProfile {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -15,11 +19,8 @@ public class OAuthProfile {
     @Enumerated(EnumType.STRING)
     private AuthProvider provider;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "external_id", nullable = false)
     private String externalId;
-
-    private String accessToken;
-    private String refreshToken;
 
     public OAuthProfile() {}
 
@@ -41,9 +42,4 @@ public class OAuthProfile {
     public String getExternalId() { return externalId; }
     public void setExternalId(String externalId) { this.externalId = externalId; }
 
-    public String getAccessToken() { return accessToken; }
-    public void setAccessToken(String accessToken) { this.accessToken = accessToken; }
-
-    public String getRefreshToken() { return refreshToken; }
-    public void setRefreshToken(String refreshToken) { this.refreshToken = refreshToken; }
 }

@@ -39,7 +39,11 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     healthcheck:
-      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:29092 --list"]
+      test:
+        [
+          "CMD-SHELL",
+          "kafka-topics --bootstrap-server localhost:29092 --list"
+        ]
       interval: 10s
       timeout: 10s
       retries: 12
@@ -49,6 +53,9 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
@@ -78,6 +85,8 @@ services:
         SERVICE: solicitud-service
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://solicitudes-db:5432/solicitudes
+      SPRING_DATASOURCE_USERNAME: credit
+      SPRING_DATASOURCE_PASSWORD: credit
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
       solicitudes-db:
@@ -94,8 +103,13 @@ services:
         SERVICE: evaluacion-service
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://evaluaciones-db:5432/evaluaciones
+      SPRING_DATASOURCE_USERNAME: credit
+      SPRING_DATASOURCE_PASSWORD: credit
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
     depends_on:
       evaluaciones-db:
         condition: service_healthy
@@ -109,26 +123,19 @@ services:
   auth-service:
     build:
       <<: *service-build
-      args:
-        SERVICE: auth-service
-    environment:
-      AUTH_GOOGLE_TOKEN_INFO_URL: ${AUTH_GOOGLE_TOKEN_INFO_URL:-}
-      AUTH_FACEBOOK_TOKEN_INFO_URL: ${AUTH_FACEBOOK_TOKEN_INFO_URL:-}
-    ports:
-      - "8083:8083"
 
-  api-gateway:
-    build:
-      <<: *service-build
-      args:
-        SERVICE: api-gateway
-    environment:
-      SOLICITUD_SERVICE_URL: http://solicitud-service:8081
-      EVALUACION_SERVICE_URL: http://evaluacion-service:8082
-      AUTH_SERVICE_URL: http://auth-service:8083
-    depends_on:
-      - solicitud-service
-      - evaluacion-service
-      - auth-service
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
-      - "8080:8080"
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+

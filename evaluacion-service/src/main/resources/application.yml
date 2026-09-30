@@ -29,15 +29,23 @@ spring:
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:localhost}
 
+
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: prometheus, health, info
   endpoint:
+    prometheus:
+      enabled: true
     health:
       probes:
         enabled: true
+      show-details: always
+  metrics:
+    tags:
+      application: api-service
+
 
 app:
   kafka:

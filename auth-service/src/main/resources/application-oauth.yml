@@ -1,0 +1,25 @@
+spring:
+  config:
+    activate:
+      on-profile: oauth
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:401267650704-37p1r9a8frrqlmo2191f0r6ae27d690t.apps.googleusercontent.com}
+            client-secret: ${GOOGLE_CLIENT_SECRET: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}
+            authorization-grant-type: authorization_code
+            redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8083/api/auth/oauth/google/callback}
+            scope:
+              - openid
+              - profile
+              - email
+          github:
+            client-id: ${GITHUB_CLIENT_ID:Ov23lichLZVFQm6jEATE}
+            client-secret: ${GITHUB_CLIENT_SECRET:59e143d3ced7e50ea6f6dad3fe5fd5daf568a4c8}
+            authorization-grant-type: authorization_code
+            redirect-uri: ${GITHUB_REDIRECT_URI:http://localhost:8083/api/auth/oauth/github/callback}
+            scope:
+              - read:user
+              - user:email

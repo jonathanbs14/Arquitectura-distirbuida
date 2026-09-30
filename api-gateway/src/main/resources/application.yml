@@ -47,9 +47,14 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway
+        include: prometheus, health, info
   endpoint:
+    prometheus:
+      enabled: true
     health:
       probes:
         enabled: true
       show-details: always
+  metrics:
+    tags:
+      application: api-gateway

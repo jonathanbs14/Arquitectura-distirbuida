@@ -5,10 +5,10 @@ import com.prueba.graftsql.credito.auth.domain.MFASetup;
 import dev.samstevens.totp.code.CodeVerifier;
 import dev.samstevens.totp.code.DefaultCodeGenerator;
 import dev.samstevens.totp.code.DefaultCodeVerifier;
+import dev.samstevens.totp.secret.DefaultSecretGenerator;
 import dev.samstevens.totp.qr.QrData;
 import dev.samstevens.totp.qr.QrGenerator;
 import dev.samstevens.totp.qr.ZxingPngQrGenerator;
-import dev.samstevens.totp.secret.DefaultSecretGenerator;
 import dev.samstevens.totp.time.SystemTimeProvider;
 import dev.samstevens.totp.util.Utils;
 import org.springframework.stereotype.Component;
@@ -16,31 +16,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class GoogleAuthenticatorAdapter implements MFAPort {
 
-    private static final CodeVerifier CODE_VERIFIER =
-            new DefaultCodeVerifier(
-                    new DefaultCodeGenerator(),
-                    new SystemTimeProvider()
-            );
+    private static final CodeVerifier codeVerifier = new DefaultCodeVerifier(
+            new DefaultCodeGenerator(), new SystemTimeProvider());
 
     @Override
     public MFASetup generateMFASecret(String userId) {
         String secret = new DefaultSecretGenerator().generate();
         String qrCodeUrl = generateQRCodeUrl(secret, userId);
-
         return new MFASetup(secret, qrCodeUrl, userId);
     }
 
     @Override
     public boolean verifyMFACode(String secret, String code) {
-        if (secret == null || secret.isBlank()) {
-            return false;
-        }
-
-        if (code == null || !code.matches("\\d{6}")) {
-            return false;
-        }
-
-        return CODE_VERIFIER.isValidCode(secret, code);
+        return codeVerifier.isValidCode(secret, code);
     }
 
     @Override
@@ -56,16 +44,9 @@ public class GoogleAuthenticatorAdapter implements MFAPort {
 
             QrGenerator generator = new ZxingPngQrGenerator();
             byte[] imageData = generator.generate(data);
-
-            return Utils.getDataUriForImage(
-                    imageData,
-                    generator.getImageMimeType()
-            );
+            return "data:image/png;base64," + Utils.getDataUriForImage(imageData, generator.getImageMimeType());
         } catch (Exception e) {
-            throw new IllegalStateException(
-                    "Error al generar el código QR para MFA",
-                    e
-            );
+            throw new RuntimeException("Error generating QR code", e);
         }
     }
 }

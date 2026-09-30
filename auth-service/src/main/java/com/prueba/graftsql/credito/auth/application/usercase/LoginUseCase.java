@@ -7,6 +7,7 @@ import com.prueba.graftsql.credito.auth.application.UserDTO;
 import com.prueba.graftsql.credito.auth.application.ports.JwtPort;
 import com.prueba.graftsql.credito.auth.application.ports.MFAPort;
 import com.prueba.graftsql.credito.auth.domain.User;
+import com.prueba.graftsql.credito.auth.domain.AuthProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,10 @@ public class LoginUseCase {
     public AuthResponse execute(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+
+        if (user.getAuthProvider() != AuthProvider.LOCAL || user.getPassword() == null) {
+            throw new RuntimeException("Use el proveedor con el que creó su cuenta");
+        }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid credentials");

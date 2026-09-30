@@ -10,6 +10,7 @@ import com.prueba.graftsql.credito.auth.domain.OAuthProfile;
 import com.prueba.graftsql.credito.auth.domain.SocialUserInfo;
 import com.prueba.graftsql.credito.auth.domain.User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RegisterOAuthUseCase {
@@ -23,6 +24,7 @@ public class RegisterOAuthUseCase {
         this.jwtPort = jwtPort;
     }
 
+    @Transactional
     public AuthResponse execute(SocialUserInfo userInfo, AuthProvider provider) {
         var existingProfile = oauthProfileRepository.findByProviderAndExternalId(provider, userInfo.getId());
 
@@ -30,12 +32,14 @@ public class RegisterOAuthUseCase {
         if (existingProfile.isPresent()) {
             user = userRepository.findById(existingProfile.get().getUserId()).orElseThrow();
         } else {
+            if (userRepository.findByEmail(userInfo.getEmail()).isPresent()) {
+                throw new OAuthAccountAlreadyExistsException();
+            }
             user = new User(userInfo.getEmail(), userInfo.getName());
             user.setAuthProvider(provider);
             user = userRepository.save(user);
 
             OAuthProfile profile = new OAuthProfile(user.getId(), provider, userInfo.getId());
-            profile.setAccessToken(userInfo.getAccessToken());
             oauthProfileRepository.save(profile);
         }
 

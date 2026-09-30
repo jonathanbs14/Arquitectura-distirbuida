@@ -23,20 +23,9 @@ server:
   port: 8083
 
 jwt:
-  secret: "J7gT4pL9w2nB6yK8zQ1cV5mX3sF0aD9hR2uE7iN4oPk"
+  secret: "LxTwm+2Qe10qtr4zHNVwQ4mTFbqoBIehqTtaOVzLwcBFTSmLR+VogL+dhj2cRGDapKG3kWhiE9SU7f1SgbrNFw=="
   expiration: 3600000
   refresh-expiration: 86400000
-
-oauth:
-  google:
-    client-id: ${GOOGLE_CLIENT_ID:401267650704-37p1r9a8frrqlmo2191f0r6ae27d690t.apps.googleusercontent.com}
-    client-secret: ${GOOGLE_CLIENT_SECRET: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}
-    redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8083/api/auth/oauth/google/callback}
-
-  github:
-    client-id: ${GITHUB_CLIENT_ID:Ov23lichLZVFQm6jEATE}
-    client-secret: ${GITHUB_CLIENT_SECRET:59e143d3ced7e50ea6f6dad3fe5fd5daf568a4c8}
-    redirect-uri: ${GITHUB_REDIRECT_URI:http://localhost:8083/api/auth/oauth/github/callback}
 
 logging:
   level:
@@ -45,3 +34,19 @@ logging:
 
   file:
     name: ../logs/auth-service/app.log
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health, info
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      probes:
+        enabled: true
+      show-details: always
+  metrics:
+    tags:
+      application: auth-service
